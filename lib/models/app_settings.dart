@@ -1,4 +1,5 @@
 enum AppThemeMode { system, light, dark }
+
 enum ReminderPreference { beforeDue, onDueDate, beforeAndOnDueDate }
 
 class AppSettings {
