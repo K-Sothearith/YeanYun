@@ -87,7 +87,7 @@ MaintenancePlan 1 ── referenced by ── 0..* ServiceRecord (optional link)
 
 | Operation | Preconditions | Expected result |
 |---|---|---|
-| `createVehicle(input)` | Nonblank name, supported type/subtype, unique ID | Adds vehicle; returns created model |
+| `addVehicle(input)` | Nonblank name, supported type/subtype, unique ID | Adds vehicle; returns created model |
 | `updateVehicle(id, patch)` | Vehicle exists; new values valid | Updates editable fields without changing ID |
 | `archiveVehicle(id)` | Vehicle exists and is active | Marks archived; retains related history |
 | `restoreVehicle(id)` | Vehicle exists and is archived | Restores active status |
