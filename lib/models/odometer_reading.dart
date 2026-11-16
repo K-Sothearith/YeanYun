@@ -1,19 +1,25 @@
 class OdometerReading {
-  final String id;
-  final String vehicleId;
-  final DateTime recordedAt;
-  final int kilometres;
-  final String? note;
-  final DateTime? createdAt;
+  final String _id;
+  final String _vehicleId;
+  final DateTime _recordedAt;
+  final int _kilometres;
+  final String? _note;
+  final DateTime? _createdAt;
 
   OdometerReading({
-    required this.id,
-    required this.vehicleId,
+    required this._id,
+    required this._vehicleId,
     required DateTime recordedAt,
-    required this.kilometres,
-    this.note,
+    required this._kilometres,
+    this._note,
     DateTime? createdAt,
-  }) : 
-    recordedAt = recordedAt.toUtc(),
-    createdAt = createdAt?.toUtc();
+  }) : _recordedAt = recordedAt.toUtc(),
+       _createdAt = createdAt?.toUtc();
+
+  String get id => _id;
+  String get vehicleId => _vehicleId;
+  DateTime get recordedAt => _recordedAt;
+  int get kilometres => _kilometres;
+  String? get note => _note;
+  DateTime? get createdAt => _createdAt;
 }

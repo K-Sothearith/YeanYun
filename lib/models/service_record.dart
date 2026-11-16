@@ -1,25 +1,34 @@
 class ServiceRecord {
-  final String id;
-  final String vehicleId;
-  final DateTime performedAt;
-  final String title;
-  final int costMinorUnits;
-  final int odometerKm;
-  final String? maintenancePlanId;
-  final String? notes;
-  final DateTime? createdAt;
+  final String _id;
+  final String _vehicleId;
+  final DateTime _performedAt;
+  final String _title;
+  final int _costMinorUnits;
+  final int _odometerKm;
+  final String? _maintenancePlanId;
+  final String? _notes;
+  final DateTime? _createdAt;
 
   ServiceRecord({
-    required this.id,
-    required this.vehicleId,
+    required this._id,
+    required this._vehicleId,
     required DateTime performedAt,
-    required this.title,
-    required this.costMinorUnits,
-    required this.odometerKm,
-    this.maintenancePlanId,
-    this.notes,
+    required this._title,
+    required this._costMinorUnits,
+    required this._odometerKm,
+    this._maintenancePlanId,
+    this._notes,
     DateTime? createdAt,
-  }) : 
-    performedAt = performedAt.toUtc(),
-    createdAt = createdAt?.toUtc();
+  }) : _performedAt = performedAt.toUtc(),
+       _createdAt = createdAt?.toUtc();
+
+  String get id => _id;
+  String get vehicleId => _vehicleId;
+  DateTime get performedAt => _performedAt;
+  String get title => _title;
+  int get costMinorUnits => _costMinorUnits;
+  int get odometerKm => _odometerKm;
+  String? get maintenancePlanId => _maintenancePlanId;
+  String? get notes => _notes;
+  DateTime? get createdAt => _createdAt;
 }

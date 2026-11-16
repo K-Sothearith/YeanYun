@@ -1,35 +1,49 @@
 enum PlanStatus { upcoming, due, overdue, paused }
 
 class MaintenancePlan {
-  final String id;
-  final String vehicleId;
-  final String title;
-  final bool enabled;
-  final DateTime createdAt;
-  final int? intervalKm;
-  final int? intervalDays;
-  final DateTime? lastCompletedAt;
-  final int? lastCompletedKm;
-  final DateTime? dueAt;
-  final int? dueKm;
-  final String? notes;
-  final String? templateKey;
+  final String _id;
+  final String _vehicleId;
+  final String _title;
+  final bool _enabled;
+  final DateTime _createdAt;
+  final int? _intervalKm;
+  final int? _intervalDays;
+  final DateTime? _lastCompletedAt;
+  final int? _lastCompletedKm;
+  final DateTime? _dueAt;
+  final int? _dueKm;
+  final String? _notes;
+  final String? _templateKey;
 
   MaintenancePlan({
-    required this.id,
-    required this.vehicleId,
-    required this.title,
+    required this._id,
+    required this._vehicleId,
+    required this._title,
     required DateTime createdAt,
-    this.enabled = true,
-    this.intervalKm,
-    this.intervalDays,
+    this._enabled = true,
+    this._intervalKm,
+    this._intervalDays,
     DateTime? lastCompletedAt,
-    this.lastCompletedKm,
+    this._lastCompletedKm,
     DateTime? dueAt,
-    this.dueKm,
-    this.notes,
-    this.templateKey,
-  }) : createdAt = createdAt.toUtc(),
-       lastCompletedAt = lastCompletedAt?.toUtc(),
-       dueAt = dueAt?.toUtc();
+    this._dueKm,
+    this._notes,
+    this._templateKey,
+  }) : _createdAt = createdAt.toUtc(),
+       _lastCompletedAt = lastCompletedAt?.toUtc(),
+       _dueAt = dueAt?.toUtc();
+
+  String get id => _id;
+  String get vehicleId => _vehicleId;
+  String get title => _title;
+  bool get enabled => _enabled;
+  DateTime get createdAt => _createdAt;
+  int? get intervalKm => _intervalKm;
+  int? get intervalDays => _intervalDays;
+  DateTime? get lastCompletedAt => _lastCompletedAt;
+  int? get lastCompletedKm => _lastCompletedKm;
+  DateTime? get dueAt => _dueAt;
+  int? get dueKm => _dueKm;
+  String? get notes => _notes;
+  String? get templateKey => _templateKey;
 }
