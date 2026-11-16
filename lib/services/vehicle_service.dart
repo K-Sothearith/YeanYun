@@ -1,27 +1,24 @@
-part of 'yeanyun.dart';
+import '../models/vehicle.dart';
 
 class VehicleService {
-  VehicleService._(this._app);
-  final YeanYun _app;
+  final Map<String, Vehicle> _vehicles = {};
 
   Vehicle getVehicle(String id) {
-    _nonblank(id, 'id');
-    return _app._vehicles[id] ?? (throw StateError('Vehicle not found: $id'));
+    _requireNonblank(id, 'id');
+    return _vehicles[id] ?? (throw StateError('Vehicle not found: $id'));
   }
 
   List<Vehicle> getVehicles({bool includeArchived = true}) => List.unmodifiable(
-    _app._vehicles.values.where((v) => includeArchived || !v.isArchived),
+    _vehicles.values.where((v) => includeArchived || !v.isArchived),
   );
 
   Vehicle addVehicle(Vehicle input) {
     _validate(input);
-    _unique(_app._vehicles, input.id);
-    _app._vehicles[input.id] = input;
+    _requireUnique(_vehicles, input.id);
+    _vehicles[input.id] = input;
     return input;
   }
 
-  /// Replaces editable fields, including nullable fields. Identity, creation
-  /// date and archive state are preserved; use archive/restore for transitions.
   Vehicle updateVehicle(String id, Vehicle input) {
     final current = getVehicle(id);
     _validate(input);
@@ -38,7 +35,7 @@ class VehicleService {
       year: input.year,
       notes: input.notes,
     );
-    _app._vehicles[id] = updated;
+    _vehicles[id] = updated;
     return updated;
   }
 
@@ -64,16 +61,30 @@ class VehicleService {
       year: v.year,
       notes: v.notes,
     );
-    _app._vehicles[id] = updated;
+    _vehicles[id] = updated;
     return updated;
   }
 
   void _validate(Vehicle v) {
-    _nonblank(v.id, 'id');
-    _nonblank(v.name, 'name');
-    _vehicleType(v.type, v.subtype);
+    _requireNonblank(v.id, 'id');
+    _requireNonblank(v.name, 'name');
+    _validateVehicleType(v.type, v.subtype);
     if (v.year != null && v.year! <= 0) {
       throw ArgumentError('Year must be positive.');
+    }
+  }
+
+  void _requireNonblank(String value, String name) {
+    if (value.trim().isEmpty) throw ArgumentError('$name must not be blank.');
+  }
+
+  void _requireUnique<T>(Map<String, T> store, String id) {
+    if (store.containsKey(id)) throw StateError('ID already exists: $id');
+  }
+
+  void _validateVehicleType(VehicleType type, ElectricVehicleSubtype? subtype) {
+    if (subtype != null && type != VehicleType.electricCar) {
+      throw ArgumentError('Only electric cars may have an EV subtype.');
     }
   }
 }

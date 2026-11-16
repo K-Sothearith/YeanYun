@@ -1,32 +1,32 @@
-part of 'yeanyun.dart';
+import '../models/odometer_reading.dart';
+import 'vehicle_service.dart';
 
 class OdometerService {
-  OdometerService._(this._app);
-  final YeanYun _app;
+  OdometerService(this._vehicles);
+  final Map<String, OdometerReading> _readings = {};
+  final VehicleService _vehicles;
 
   List<OdometerReading> getReadings(String vehicleId) {
-    _app.vehicles.getVehicle(vehicleId);
-    final readings =
-        _app._readings.values.where((r) => r.vehicleId == vehicleId).toList()
-          ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
+    _vehicles.getVehicle(vehicleId);
+    final readings = _readings.values.where((r) => r.vehicleId == vehicleId).toList()
+      ..sort((a, b) => a.recordedAt.compareTo(b.recordedAt));
     return List.unmodifiable(readings);
   }
-
-  /// Latest reading by effective timestamp, or null if none exists.
+  
   OdometerReading? getCurrentOdometer(String vehicleId) {
     final readings = getReadings(vehicleId);
     return readings.isEmpty ? null : readings.last;
   }
 
   OdometerReading addReading(OdometerReading input) {
-    _unique(_app._readings, input.id);
+    _requireUnique(_readings, input.id);
     _validate(input);
-    _app._readings[input.id] = input;
+    _readings[input.id] = input;
     return input;
   }
 
   OdometerReading updateReading(String id, OdometerReading input) {
-    final current = _app._readings[id];
+    final current = _readings[id];
     if (current == null) throw StateError('Reading not found: $id');
     if (input.id != id || input.vehicleId != current.vehicleId) {
       throw ArgumentError('Reading identity and vehicle cannot change.');
@@ -40,14 +40,14 @@ class OdometerService {
       note: input.note,
       createdAt: current.createdAt,
     );
-    _app._readings[id] = updated;
+    _readings[id] = updated;
     return updated;
   }
 
   void _validate(OdometerReading input, {String? excludingId}) {
-    _nonblank(input.id, 'id');
-    _nonblank(input.vehicleId, 'vehicleId');
-    _nonnegative(input.kilometres, 'kilometres');
+    _requireNonblank(input.id, 'id');
+    _requireNonblank(input.vehicleId, 'vehicleId');
+    _requireNonnegative(input.kilometres, 'kilometres');
     for (final other in getReadings(input.vehicleId)) {
       if (other.id == excludingId) continue;
       final order = input.recordedAt.compareTo(other.recordedAt);
@@ -57,5 +57,17 @@ class OdometerService {
         throw ArgumentError('Mileage must follow chronological order.');
       }
     }
+  }
+
+  void _requireNonblank(String value, String name) {
+    if (value.trim().isEmpty) throw ArgumentError('$name must not be blank.');
+  }
+
+  void _requireNonnegative(int value, String name) {
+    if (value < 0) throw ArgumentError('$name must not be negative.');
+  }
+
+  void _requireUnique<T>(Map<String, T> store, String id) {
+    if (store.containsKey(id)) throw StateError('ID already exists: $id');
   }
 }

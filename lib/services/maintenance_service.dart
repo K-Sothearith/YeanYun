@@ -1,40 +1,39 @@
-part of 'yeanyun.dart';
+import '../models/maintenance_plan.dart';
+import '../models/service_record.dart';
+import 'vehicle_service.dart';
+import 'odometer_service.dart';
 
 class MaintenanceService {
-  MaintenanceService._(this._app);
-  final YeanYun _app;
+  MaintenanceService(this._vehicles, this._odometer);
+  final Map<String, MaintenancePlan> _plans = {};
+  final Map<String, ServiceRecord> _records = {};
+  final VehicleService _vehicles;
+  final OdometerService _odometer;
 
   MaintenancePlan getPlan(String id) {
-    _nonblank(id, 'id');
-    return _app._plans[id] ??
-        (throw StateError('Maintenance plan not found: $id'));
+    _requireNonblank(id, 'id');
+    return _plans[id] ?? (throw StateError('Maintenance plan not found: $id'));
   }
 
   List<MaintenancePlan> getPlans(
     String vehicleId, {
     bool includeDisabled = true,
   }) {
-    _app.vehicles.getVehicle(vehicleId);
-    final plans =
-        _app._plans.values
-            .where(
-              (p) => p.vehicleId == vehicleId && (includeDisabled || p.enabled),
-            )
-            .toList()
-          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _vehicles.getVehicle(vehicleId);
+    final plans = _plans.values.where(
+      (p) => p.vehicleId == vehicleId && (includeDisabled || p.enabled),
+    ).toList()..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return List.unmodifiable(plans);
   }
 
   MaintenancePlan createPlan(MaintenancePlan input) {
     _validatePlan(input);
-    _unique(_app._plans, input.id);
+    _requireUnique(_plans, input.id);
 
     int? dueKm = input.dueKm;
     if (dueKm == null && input.intervalKm != null) {
-      final baseKm =
-          input.lastCompletedKm ??
-          _app.odometer.getCurrentOdometer(input.vehicleId)?.kilometres ??
-          0;
+      final baseKm = input.lastCompletedKm ??
+        _odometer.getCurrentOdometer(input.vehicleId)?.kilometres ?? 0;
       dueKm = baseKm + input.intervalKm!;
     }
 
@@ -60,7 +59,7 @@ class MaintenanceService {
       templateKey: input.templateKey,
     );
 
-    _app._plans[plan.id] = plan;
+    _plans[plan.id] = plan;
     return plan;
   }
 
@@ -88,7 +87,7 @@ class MaintenanceService {
       notes: input.notes,
       templateKey: input.templateKey ?? current.templateKey,
     );
-    _app._plans[id] = updated;
+    _plans[id] = updated;
     return updated;
   }
 
@@ -98,9 +97,7 @@ class MaintenanceService {
   MaintenancePlan _setPlanEnabled(String planId, bool enabled) {
     final plan = getPlan(planId);
     if (plan.enabled == enabled) {
-      throw StateError(
-        enabled ? 'Plan is already active.' : 'Plan is already paused.',
-      );
+      throw StateError(enabled ? 'Plan is already active.' : 'Plan is already paused.');
     }
     final updated = MaintenancePlan(
       id: plan.id,
@@ -117,7 +114,7 @@ class MaintenanceService {
       notes: plan.notes,
       templateKey: plan.templateKey,
     );
-    _app._plans[planId] = updated;
+    _plans[planId] = updated;
     return updated;
   }
 
@@ -129,12 +126,8 @@ class MaintenanceService {
     bool isOverdue = false;
     bool isDue = false;
 
-    // Check distance threshold
-    final dueKm =
-        plan.dueKm ??
-        (plan.intervalKm != null
-            ? (plan.lastCompletedKm ?? 0) + plan.intervalKm!
-            : null);
+    final dueKm = plan.dueKm ?? (plan.intervalKm != null ? 
+      (plan.lastCompletedKm ?? 0) + plan.intervalKm! : null);
 
     if (dueKm != null) {
       if (currentKm > dueKm) {
@@ -144,14 +137,8 @@ class MaintenanceService {
       }
     }
 
-    // Check time threshold
-    final dueAt =
-        plan.dueAt ??
-        (plan.intervalDays != null
-            ? (plan.lastCompletedAt ?? plan.createdAt).add(
-                Duration(days: plan.intervalDays!),
-              )
-            : null);
+    final dueAt = plan.dueAt ?? (plan.intervalDays != null ?
+      (plan.lastCompletedAt ?? plan.createdAt).add(Duration(days: plan.intervalDays!)) : null);
 
     if (dueAt != null) {
       final todayUtc = today.toUtc();
@@ -172,7 +159,6 @@ class MaintenanceService {
     return getDueStatus(getPlan(planId), today, currentKm);
   }
 
-  /// Coordinates Vehicle, MaintenancePlan, and ServiceRecord atomically.
   ServiceRecord recordCompletion(
     String planId,
     ServiceRecord record, {
@@ -186,12 +172,9 @@ class MaintenanceService {
       now: now,
     );
 
-    final nextDueKm = plan.intervalKm != null
-        ? record.odometerKm + plan.intervalKm!
-        : null;
-    final nextDueAt = plan.intervalDays != null
-        ? record.performedAt.add(Duration(days: plan.intervalDays!))
-        : null;
+    final nextDueKm = plan.intervalKm != null ? record.odometerKm + plan.intervalKm! : null;
+    final nextDueAt = plan.intervalDays != null ? 
+      record.performedAt.add(Duration(days: plan.intervalDays!)) : null;
 
     final updatedPlan = MaintenancePlan(
       id: plan.id,
@@ -221,8 +204,8 @@ class MaintenanceService {
       createdAt: record.createdAt ?? (now ?? DateTime.now()),
     );
 
-    _app._plans[planId] = updatedPlan;
-    _app._records[storedRecord.id] = storedRecord;
+    _plans[planId] = updatedPlan;
+    _records[storedRecord.id] = storedRecord;
     return storedRecord;
   }
 
@@ -239,36 +222,33 @@ class MaintenanceService {
       notes: input.notes,
       createdAt: input.createdAt ?? (now ?? DateTime.now()),
     );
-    _app._records[stored.id] = stored;
+    _records[stored.id] = stored;
     return stored;
   }
 
   ServiceRecord getServiceRecord(String id) {
-    _nonblank(id, 'id');
-    return _app._records[id] ??
-        (throw StateError('Service record not found: $id'));
+    _requireNonblank(id, 'id');
+    return _records[id] ?? (throw StateError('Service record not found: $id'));
   }
 
   List<ServiceRecord> getServiceHistory(String vehicleId) {
-    _app.vehicles.getVehicle(vehicleId);
-    final history =
-        _app._records.values.where((r) => r.vehicleId == vehicleId).toList()
-          ..sort((a, b) => a.performedAt.compareTo(b.performedAt));
+    _vehicles.getVehicle(vehicleId);
+    final history = _records.values.where((r) => r.vehicleId == vehicleId).toList()
+      ..sort((a, b) => a.performedAt.compareTo(b.performedAt));
     return List.unmodifiable(history);
   }
 
   int getTotalExpense(String vehicleId) {
-    _app.vehicles.getVehicle(vehicleId);
-    return _app._records.values
-        .where((r) => r.vehicleId == vehicleId)
-        .fold(0, (sum, r) => sum + r.costMinorUnits);
+    _vehicles.getVehicle(vehicleId);
+    return _records.values.where((r) => r.vehicleId == vehicleId)
+      .fold(0, (sum, r) => sum + r.costMinorUnits);
   }
 
   void _validatePlan(MaintenancePlan p, {bool isUpdate = false}) {
-    _nonblank(p.id, 'id');
-    _nonblank(p.vehicleId, 'vehicleId');
-    _nonblank(p.title, 'title');
-    _app.vehicles.getVehicle(p.vehicleId);
+    _requireNonblank(p.id, 'id');
+    _requireNonblank(p.vehicleId, 'vehicleId');
+    _requireNonblank(p.title, 'title');
+    _vehicles.getVehicle(p.vehicleId);
 
     if (p.intervalKm == null && p.intervalDays == null) {
       throw ArgumentError('Plan must specify at least one positive interval.');
@@ -304,19 +284,19 @@ class MaintenanceService {
     String? expectedVehicleId,
     DateTime? now,
   }) {
-    _nonblank(record.id, 'id');
-    _unique(_app._records, record.id);
-    _nonblank(record.vehicleId, 'vehicleId');
-    _nonblank(record.title, 'title');
-    _nonnegative(record.costMinorUnits, 'costMinorUnits');
-    _nonnegative(record.odometerKm, 'odometerKm');
+    _requireNonblank(record.id, 'id');
+    _requireUnique(_records, record.id);
+    _requireNonblank(record.vehicleId, 'vehicleId');
+    _requireNonblank(record.title, 'title');
+    _requireNonnegative(record.costMinorUnits, 'costMinorUnits');
+    _requireNonnegative(record.odometerKm, 'odometerKm');
 
     final cutoff = (now ?? DateTime.now()).toUtc();
     if (record.performedAt.toUtc().isAfter(cutoff)) {
       throw ArgumentError('Service date cannot be in the future.');
     }
 
-    _app.vehicles.getVehicle(record.vehicleId);
+    _vehicles.getVehicle(record.vehicleId);
 
     if (expectedVehicleId != null && record.vehicleId != expectedVehicleId) {
       throw ArgumentError(
@@ -332,7 +312,7 @@ class MaintenanceService {
         );
       }
     } else if (record.maintenancePlanId != null) {
-      _nonblank(record.maintenancePlanId!, 'maintenancePlanId');
+      _requireNonblank(record.maintenancePlanId!, 'maintenancePlanId');
       final plan = getPlan(record.maintenancePlanId!);
       if (plan.vehicleId != record.vehicleId) {
         throw ArgumentError(
@@ -340,5 +320,17 @@ class MaintenanceService {
         );
       }
     }
+  }
+
+  void _requireNonblank(String value, String name) {
+    if (value.trim().isEmpty) throw ArgumentError('$name must not be blank.');
+  }
+
+  void _requireNonnegative(int value, String name) {
+    if (value < 0) throw ArgumentError('$name must not be negative.');
+  }
+
+  void _requireUnique<T>(Map<String, T> store, String id) {
+    if (store.containsKey(id)) throw StateError('ID already exists: $id');
   }
 }
