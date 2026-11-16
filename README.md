@@ -41,8 +41,4 @@ YeanYun is intended for individual vehicle owners, people who use several kinds 
 
 ## Technology
 
-YeanYun is being built as a Flutter mobile application with on-device storage, local notifications, and automated tests. The application is designed to operate entirely offline.
-
-## Development documentation
-
-See [DEVELOPMENT_SPEC.md](DEVELOPMENT_SPEC.md) for the complete planned scope, system architecture, domain rules, user flows, implementation plan, and testing strategy.
+YeanYun is being built as a Flutter mobile application with on-device storage and automated tests. The application is designed to operate entirely offline.

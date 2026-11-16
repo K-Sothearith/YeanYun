@@ -2,25 +2,19 @@
 
 **Project:** YeanYun (យានយន្ត) — Offline Vehicle Maintenance Tracker  
 **Stack:** Dart / Flutter
-**Team:** 2 members
+**Team:** 2 members (Kong Sothearith & Porleak Vitou)
 **Milestone focus:** Domain models, business services, and service unit tests
 
-> This document is a milestone-specific implementation plan. The lecturer's mandatory requirements are separated from our proposed design and workflow. The model and service contracts below should remain consistent with the complete development specification.
-
 ## 1. Lecturer's acceptance requirements
-
-From the Milestone II handout:
 
 - Required directories: `lib/model/`, `lib/service/`, `test/`.
 - Model layer: **at least 3 classes/entities**, **at least 2 composition or aggregation relationships**, and appropriate constructors, attributes, and methods using OOP principles.
 - Service layer: **at least 3 meaningful business operations** using model objects, **at least 1 operation involving multiple entities**, and **at least 1 business rule/validation**.
 - Test layer: **at least 5 tests total**, covering **normal**, **invalid**, and **boundary/special** cases.
 
-**Team target (above the minimum):** 4 core entities, 4 service classes, and approximately 16–20 meaningful tests. The tests should verify behavior, not just instantiate objects.
-
 ## 2. Agreed ownership and workflow
 
-### Developer 1 — You: shared models + vehicle/odometer services/tests
+### Kong Sothearith: shared models + vehicle/odometer services/tests
 
 **First, on `main`:** define and commit the shared domain models and their contracts before either developer starts service implementation. This is a short, coordinated foundation step, not a separate feature implementation phase.
 
@@ -31,7 +25,7 @@ From the Milestone II handout:
 - Write `vehicle_service_test.dart` and `odometer_service_test.dart`.
 - Cover vehicle creation/edit/archive/restore and chronological odometer validation.
 
-### Developer 2 — Teammate: maintenance/service-record services/tests
+### Porleak Vitou: maintenance/service-record services/tests
 
 **After the shared models are on `main`, on `feature/maintenance-records`:**
 
@@ -89,7 +83,7 @@ MaintenancePlan 1 ── referenced by ── 0..* ServiceRecord (optional link)
 
 ## 4. Services and operation contracts
 
-### Developer 1: `VehicleService`
+### Kong Sothearith: `VehicleService`
 
 | Operation | Preconditions | Expected result |
 |---|---|---|
@@ -98,7 +92,7 @@ MaintenancePlan 1 ── referenced by ── 0..* ServiceRecord (optional link)
 | `archiveVehicle(id)` | Vehicle exists and is active | Marks archived; retains related history |
 | `restoreVehicle(id)` | Vehicle exists and is archived | Restores active status |
 
-### Developer 1: `OdometerService`
+### Kong Sothearith: `OdometerService`
 
 | Operation | Preconditions | Expected result |
 |---|---|---|
@@ -108,7 +102,7 @@ MaintenancePlan 1 ── referenced by ── 0..* ServiceRecord (optional link)
 
 **Chronological rule:** For a reading inserted between 10,000 km and 12,000 km, the new value must be in that inclusive range. Reject duplicate effective timestamps for the same vehicle. Equal mileage at different times is allowed.
 
-### Developer 2: `MaintenanceService`
+### Porleak Vitou: `MaintenanceService`
 
 | Operation | Preconditions | Expected result |
 |---|---|---|
@@ -117,7 +111,7 @@ MaintenancePlan 1 ── referenced by ── 0..* ServiceRecord (optional link)
 | `pausePlan(planId)` / `resumePlan(planId)` | Plan exists | Changes active state while preserving history |
 | `recordCompletion(planId, serviceInput)` | Plan and vehicle exist; valid date/km/cost; linked IDs match | Creates `ServiceRecord`, updates plan completion anchors and next due |
 
-### Developer 2: service-record/history operations
+### Porleak Vitou: service-record/history operations
 
 Implement either a dedicated `ServiceRecordService` or clearly separated methods in `MaintenanceService`:
 
@@ -261,8 +255,6 @@ The teammate uses a corresponding maintenance commit message and branch. Create 
 
 ## 9. Milestone II demonstration plan
 
-Show the lecturer:
-
 1. **Architecture:** the `lib/model/`, `lib/service/`, and `test/` directories.
 2. **OOP model layer:** four classes, constructors/fields/methods, and at least two demonstrable aggregation relationships.
 3. **Business services:** operations from both team members; explain preconditions and validation.
@@ -282,7 +274,3 @@ Show the lecturer:
 - [ ] Both feature branches merged to `main` through reviewed PRs.
 - [ ] `flutter analyze` and `flutter test` pass on `main`.
 - [ ] Milestone demonstration and diagram are ready.
-
-## 11. Explicitly deferred to later milestones
-
-Flutter screens, local database integration, notification scheduling, template suggestions, backup/import/export, visual design, and full-device end-to-end testing belong to later phases described in `DEVELOPMENT_SPEC.md`. Do not introduce them just to meet Milestone II.
